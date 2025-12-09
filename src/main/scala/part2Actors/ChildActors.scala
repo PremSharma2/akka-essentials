@@ -6,17 +6,22 @@ import part2Actors.ChildActors.CreditCard.{AttachToAccount, CheckStatus}
 object ChildActors {
 
   // Actors can create other actors
+//Adts
+  private object EventHandlerActor {
 
-  object Parent {
   sealed  trait Command
     case class CreateChild(name: String) extends Command
     case class TellChild(message: String) extends Command
 
   }
-  //Todo Define Your Actor
-  class Parent extends Actor {
-    import Parent._
 
+
+
+  //Todo Define Your Actor
+  private class EventHandlerActor extends Actor {
+    import EventHandlerActor._
+
+    //  type Receive = PartialFunction[Any, Unit]
     override def receive: Receive = {
       case CreateChild(name) =>
        // context.log.info(s"parent creating the Child with name $name")
@@ -30,7 +35,10 @@ object ChildActors {
         context.become(withChild(childRef))
     }
 
-    def withChild(childRef: ActorRef): Receive = {
+    //  type Receive = PartialFunction[Any, Unit]
+   //2nd Behaviour
+    private def withChild(childRef: ActorRef): Receive = {
+      //emitting and intermediate Event for another Actor
       case TellChild(message) => childRef forward message
     }
   }
@@ -41,10 +49,10 @@ object ChildActors {
     }
   }
 
-  import Parent._
+  import EventHandlerActor._
 
   val system = ActorSystem("ParentChildDemo")
-  val parent = system.actorOf(Props[Parent], "parent")
+  val parent = system.actorOf(Props[EventHandlerActor], "parent")
   parent ! CreateChild("child")
   parent ! TellChild("hey Kid!")
 
@@ -79,6 +87,8 @@ object ChildActors {
     case class Withdraw(amount: Int)
     case object InitializeAccount
   }
+
+
   class NaiveBankAccount extends Actor {
     import CreditCard._
     import NaiveBankAccount._
@@ -88,7 +98,9 @@ object ChildActors {
     override def receive: Receive = {
       case InitializeAccount =>
         val creditCardRef = context.actorOf(Props[CreditCard], "card")
-        creditCardRef ! AttachToAccount(this) // !!
+        //emitted event for another Actor
+        creditCardRef ! AttachToAccount(this) // !
+
       case Deposit(funds) => deposit(funds)
       case Withdraw(funds) => withdraw(funds)
 
@@ -108,12 +120,16 @@ object ChildActors {
     case class AttachToAccount(bankAccount: NaiveBankAccount) // !!
     case object CheckStatus
   }
-  class CreditCard extends Actor {
+
+
+  private class CreditCard extends Actor {
     override def receive: Receive = {
-      case AttachToAccount(account) => context.become(attachedTo(account))
+      case AttachToAccount(account) =>
+        context.become(attachedTo(account))
     }
 
-    def attachedTo(account: NaiveBankAccount): Receive = {
+    //behaviour 2
+    private def attachedTo(account: NaiveBankAccount): Receive = {
       case CheckStatus =>
         println(s"${self.path} your messasge has been processed.")
         // benign

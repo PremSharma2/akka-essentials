@@ -14,20 +14,19 @@ object ActorState {
      */
 
 
-
   object WordCounter {
     def apply(): Behavior[String] =
       Behaviors.setup { context =>
-      var total = 0
+        var total = 0
 
-      Behaviors.receiveMessage { message =>
-        val newCount = message.split(" ").length
-        //todo change the state of actor
-        total += newCount
-        context.log.info(s"Message word count: $newCount - total count: $total")
-        Behaviors.same
+        Behaviors.receiveMessage { message =>
+          val newCount = message.split(" ").length
+          //todo change the state of actor
+          total += newCount
+          context.log.info(s"Message word count: $newCount - total count: $total")
+          Behaviors.same
+        }
       }
-    }
   }
 
   /*
@@ -38,33 +37,34 @@ TODO
     - use a flat type hierarchy
    */
 
- sealed trait SimpleThing
-  case object EatChocolate extends SimpleThing
+  sealed trait SimpleThing
 
-  case object CleanUpTheFloor extends SimpleThing
+  private case object EatChocolate extends SimpleThing
 
-  case object LearnAkka extends SimpleThing
+  private case object CleanUpTheFloor extends SimpleThing
+
+  private case object LearnAkka extends SimpleThing
 
   object SimpleHuman {
     def apply(): Behavior[SimpleThing] =
       Behaviors.setup { context =>
-      var happiness = 0
+        var happiness = 0
 
-      Behaviors.receiveMessage {
-        case EatChocolate =>
-          context.log.info(s"[$happiness] Eating chocolate")
-          happiness += 1
-          Behaviors.same
-        case CleanUpTheFloor =>
-          context.log.info(s"[$happiness] Wiping the floor, ugh...")
-          happiness -= 2
-          Behaviors.same
-        case LearnAkka =>
-          context.log.info(s"[$happiness] Learning Akka, YAY!")
-          happiness += 99
-          Behaviors.same
+        Behaviors.receiveMessage {
+          case EatChocolate =>
+            context.log.info(s"[$happiness] Eating chocolate")
+            happiness += 1
+            Behaviors.same
+          case CleanUpTheFloor =>
+            context.log.info(s"[$happiness] Wiping the floor, ugh...")
+            happiness -= 2
+            Behaviors.same
+          case LearnAkka =>
+            context.log.info(s"[$happiness] Learning Akka, YAY!")
+            happiness += 99
+            Behaviors.same
+        }
       }
-    }
   }
 
   def demoWordCounter(): Unit = {
@@ -77,6 +77,7 @@ TODO
     Thread.sleep(1000)
     wordCounter.terminate()
   }
+
   def demoSimpleHuman(): Unit = {
     //todo : -> boot strapping the actor system
     val human = ActorSystem(SimpleHuman_V2(), "DemoSimpleHuman")
@@ -88,6 +89,7 @@ TODO
     Thread.sleep(1000)
     human.terminate()
   }
+
   /*
   todo
       Tips:
@@ -119,13 +121,17 @@ TODO
   object WordCounter_V2 {
     def apply(): Behavior[String] = active(0)
 
-    def active(total: Int): Behavior[String] = Behaviors.receive { (context,message) =>
-        val newCount = message.split(" ").length
-        //var total += newCount
-        context.log.info(s"Message word count: $newCount - total count: ${total + newCount}")
-        active(total + newCount)
-    }
+    def active(total: Int): Behavior[String] =
+      Behaviors
+        .receive {
+          (context, message) =>
+            val newCount = message.split(" ").length
+            //var total += newCount
+            context.log.info(s"Message word count: $newCount - total count: ${total + newCount}")
+            active(total + newCount)
+        }
   }
+
   def main(args: Array[String]): Unit = {
     demoWordCounter
   }

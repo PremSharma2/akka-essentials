@@ -6,7 +6,7 @@ import akka.actor.typed.{ActorSystem, Behavior}
 object ActorsIntro {
 
   //TODO: Behaviour
-  val simpleActorBehavior: Behavior[String] = Behaviors.receiveMessage {
+  private val simpleActorBehavior: Behavior[String] = Behaviors.receiveMessage {
     //TODO partial function
     (message: String) =>
       // do something with the message
@@ -17,7 +17,7 @@ object ActorsIntro {
   }
 
 
-  def demoSimpleActor(): Unit = {
+  private def demoSimpleActor(): Unit = {
     // part 2: instantiate or boot strapping the actor system
     val actorSystem = ActorSystem(simpleActorBehavior, "FirstActorSystem")
     val actorSystem1=ActorSystem(SimpleActor(), "SecondActorSystem")
@@ -40,7 +40,7 @@ If akka.coordinated-shutdown.run-by-actor-system-terminate is configured to off
   }
 
   //TODO : Best way to design ActorBehavior "refactor"
-  object SimpleActor {
+  private object SimpleActor {
     def apply(): Behavior[String] = Behaviors.receiveMessage { (message: String) =>
       // do something with the message
       println(s"[simple actor] I have received: $message")
@@ -50,8 +50,10 @@ If akka.coordinated-shutdown.run-by-actor-system-terminate is configured to off
     }
   }
 
-  object SimpleActor_V2 {
-    def apply(): Behavior[String] = Behaviors.receive { (context, message) =>
+  private object SimpleActor_V2 {
+    def apply(): Behavior[String] =
+        Behaviors
+        .receive { (context, message) =>
       // TODO : -> context is a data structure (ActorContext) with access to a variety of APIs
       //TODO simple example: logging
       context.log.info(s"[simple actor] I have received: $message")
@@ -60,13 +62,17 @@ If akka.coordinated-shutdown.run-by-actor-system-terminate is configured to off
   }
 
   object SimpleActor_V3 {
-    def apply(): Behavior[String] = Behaviors.setup { context =>
+    def apply(): Behavior[String] =
+      Behaviors
+        .setup {
+          context =>
       // actor "private" data and methods, behaviors etc
       // YOUR CODE HERE
 
       // behavior used for the FIRST message
-      Behaviors.receiveMessage { message =>
-        context.log.info(s"[simple actor] I have received: $message")
+      Behaviors.receiveMessage {
+        message =>
+        context.log.info(s"[simple actor] I have received Event:-> $message")
         Behaviors.same
       }
     }
@@ -75,7 +81,7 @@ If akka.coordinated-shutdown.run-by-actor-system-terminate is configured to off
 
 
   def main(args: Array[String]): Unit = {
-    demoSimpleActor
+    demoSimpleActor()
   }
 
 }

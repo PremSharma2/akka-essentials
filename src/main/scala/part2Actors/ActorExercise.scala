@@ -9,7 +9,7 @@ object ActorExercise {
    * 1. Define two "person" actor behaviors, which receive Strings:
    *  - "happy", which logs your message, e.g. "I've received ____. That's great!"
    *  - "sad", .... which logs your message "That sucks."
-   *  Test both.
+   *    Test both.
    *
    * 2. Change the actor behavior:
    *  - the happy behavior will turn to sad() if it receives "Akka is bad."
@@ -19,28 +19,36 @@ object ActorExercise {
    */
 
 
-  object Person {
-    def happy(): Behavior[String] = Behaviors.receive { (context, message) =>
-      message match {
-        case "Akka is bad." =>
-          context.log.info("Don't you say anything bad about Akka!!!")
-          sad()
-        case _ =>
-          context.log.info(s"I've received '$message'.That's great!")
-          Behaviors.same
-      }
-    }
+  private object Person {
 
-    def sad(): Behavior[String] = Behaviors.receive { (context, message) =>
-      message match {
-        case "Akka is awesome!" =>
-          context.log.info("Happy now!")
-          happy()
-        case _ =>
-          context.log.info(s"I've received '$message'.That sucks!")
-          Behaviors.same
-      }
-    }
+    private def happy(): Behavior[String] =
+      Behaviors
+        .receive {
+          (context, message) =>
+            message match {
+              case "Akka is bad." =>
+                context.log.info("Don't you say anything bad about Akka!!!")
+                sad()
+              case _ =>
+                context.log.info(s"I've received '$message'.That's great!")
+                Behaviors.same
+            }
+        }
+
+    // behaviour 2
+
+    private def sad(): Behavior[String] =
+      Behaviors
+        .receive { (context, message) =>
+          message match {
+            case "Akka is awesome!" =>
+              context.log.info("Happy now!")
+              happy()
+            case _ =>
+              context.log.info(s"I've received '$message'.That sucks!")
+              Behaviors.same
+          }
+        }
 
     def apply(): Behavior[String] = happy()
   }
@@ -75,7 +83,9 @@ object ActorExercise {
   // solution: add wrapper types & type hierarchy (case classes/objects)
   object BetterActor {
     trait Message
+
     case class IntMessage(number: Int) extends Message
+
     case class StringMessage(string: String) extends Message
 
     def apply(): Behavior[Message] = Behaviors.receive { (context, message) =>

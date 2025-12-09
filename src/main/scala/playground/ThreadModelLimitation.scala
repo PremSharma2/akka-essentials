@@ -7,7 +7,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object ThreadModelLimitation extends App {
 
-  // Daniel's rants
+  // Prems's rants
   // DR #1: OO encapsulation is only valid in the SINGLE-THREADED MODEL
 
   class BankAccount(private var amount: Int) {
@@ -47,9 +47,12 @@ object ThreadModelLimitation extends App {
 
   var task: Runnable = null
 
-  val runningThread: Thread = new Thread(() => {
+  val runningThread: Thread =
+    new Thread(() => {
+      //always Polling Thread
     while (true) {
       while (task == null) {
+        //synchronized block in thread
         runningThread.synchronized {
           println("[background] waiting for a task")
           runningThread.wait()
@@ -64,9 +67,11 @@ object ThreadModelLimitation extends App {
     }
   })
 
-  def delegateToBackgroundThread(r: Runnable) = {
+
+  //background Thread to set the task
+  private def delegateToBackgroundThread(runnableTask: Runnable): Unit = {
     if (task == null) {
-      task = r
+      task = runnableTask
       runningThread.synchronized {
         runningThread.notify()
       }
@@ -86,10 +91,13 @@ object ThreadModelLimitation extends App {
   implicit val ec: ExecutionContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(8))
   // sum 1M numbers in between 10 threads
 
-  val futures: immutable.IndexedSeq[Future[BigInt]] = (0 to 9)
+  val futures: immutable.IndexedSeq[Future[BigInt]] =
+    (0 to 9)
     //.map(i => BigInt(100000 * i) until BigInt(100000 * (i + 1))) // 0 - 99999, 100000 - 199999, and so on
     .map(i => BigInt( 10000*i) until BigInt(100000 * (i+1)))  // 0 - 99999, 100000 - 199999, and so on
-    .map(range => Future {
+    .map(
+      range =>
+        Future {
       // bug
       if (range.contains(BigInt(546732))) throw new RuntimeException("invalid number")
       range.sum
