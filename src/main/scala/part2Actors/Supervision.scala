@@ -26,15 +26,18 @@ object Supervision {
   // actor throwing exception gets killed
 
   def demoCrash(): Unit = {
-    val guardian: Behavior[Unit] = Behaviors.setup { context =>
-      val fussyCounter = context.spawn(FussyWordCounter(), "fussyCounter")
+    val guardian: Behavior[Unit] =
+      Behaviors
+        .setup {
+          context =>
+            val fussyCounter = context.spawn(FussyWordCounter(), "fussyCounter")
 
-      fussyCounter ! "Starting to understand this Akka business..."
-      fussyCounter ! "Quick! Hide!"
-      fussyCounter ! "Are you there?"
+            fussyCounter ! "Starting to understand this Akka business..."
+            fussyCounter ! "Quick! Hide!"
+            fussyCounter ! "Are you there?"
 
-      Behaviors.empty
-    }
+            Behaviors.empty
+        }
 
     val system = ActorSystem(guardian, "DemoCrash")
     Thread.sleep(1000)
@@ -60,15 +63,18 @@ object Supervision {
             }
         }
 
-    val guardian: Behavior[Unit] = Behaviors.setup { context =>
-      val fussyCounter = context.spawn(parentBehavior, "fussyCounter")
+    val guardian: Behavior[Unit] =
+      Behaviors
+        .setup {
+          context =>
+            val fussyCounter = context.spawn(parentBehavior, "fussyCounter")
 
-      fussyCounter ! "Starting to understand this Akka business..."
-      fussyCounter ! "Quick! Hide!"
-      fussyCounter ! "Are you there?"
+            fussyCounter ! "Starting to understand this Akka business..."
+            fussyCounter ! "Quick! Hide!"
+            fussyCounter ! "Are you there?"
 
-      Behaviors.empty
-    }
+            Behaviors.empty
+        }
 
     val system = ActorSystem(guardian, "DemoCrashWithParent")
     Thread.sleep(1000)
@@ -81,6 +87,7 @@ object Supervision {
         .setup {
           context =>
             // supervise the child with a restart "strategy"
+            // or wraps the Actor behaviour with strategy
             val childBehavior =
               Behaviors
                 .supervise(
@@ -90,12 +97,14 @@ object Supervision {
                 ).onFailure[NullPointerException](SupervisorStrategy.resume)
 
             val child = context.spawn(childBehavior, "fussyChild")
+            //parent will watch the child here
             context.watch(child)
-
+            //  defining parent Actor Behaviour
             Behaviors
-              .receiveMessage[String] { message =>
-                child ! message
-                Behaviors.same
+              .receiveMessage[String] {
+                message =>
+                  child ! message
+                  Behaviors.same
               }
               .receiveSignal {
                 case (context, Terminated(childRef)) =>
