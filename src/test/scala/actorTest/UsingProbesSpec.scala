@@ -1,3 +1,5 @@
+package actorTest
+
 import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
@@ -109,8 +111,9 @@ object UsingProbesSpec {
 
     def active(workerRef: ActorRef[WorkerTask], totalCount: Int = 0): Behavior[MasterCommand] =
 
-      Behaviors.receive { (context, message) =>
-        message match {
+      Behaviors.receive {
+        (context, command) =>
+        command match {
           case Work(workerTask, replyTo) =>
             workerRef ! WorkerTask(workerTask, context.self, replyTo)
             Behaviors.same

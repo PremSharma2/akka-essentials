@@ -1,4 +1,6 @@
-import BasicSpec.{BlackHoleActor, LabTestActor, SimpleActor}
+package actorTest
+
+import actorTest.BasicSpec.{BlackHoleActor, LabTestActor, SimpleActor}
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.{ImplicitSender, TestKit}
 import org.scalatest.BeforeAndAfterAll
