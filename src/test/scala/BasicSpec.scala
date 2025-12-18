@@ -1,11 +1,9 @@
-package part3testing
-
+import BasicSpec.{BlackHoleActor, LabTestActor, SimpleActor}
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.{ImplicitSender, TestKit}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
-import part3testing.BasicSpec._
 
 import scala.concurrent.duration._
 import scala.util.Random
