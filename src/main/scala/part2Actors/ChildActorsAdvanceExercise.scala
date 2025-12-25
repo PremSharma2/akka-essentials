@@ -52,7 +52,7 @@ object ParentChildActorExercise {
                 context.log.info(s"master Spinning up the $nChildren children Actors")
                 val childrenRefs = for {
                   i <- 1 to nChildren
-                } yield context.spawn(WordCounterWorker(), s"Child-Actor-$i")
+                } yield context.spawn(WordCounterWorker(context.self), s"Child-Actor-$i")
                 active(childrenRefs, 0, 0, Map.empty)
               case _ => context.log.info(s"[Master]: Command  not Supported")
                 Behaviors.same
@@ -103,7 +103,21 @@ object ParentChildActorExercise {
 
 
   object WordCounterWorker {
-    def apply(): Behavior[WorkerProtocol] = ???
+    def apply(masterRef: ActorRef[MasterProtocol]): Behavior[WorkerProtocol] = Behaviors.receive { (context, message) =>
+      message match {
+        case WorkerTask(id, text) =>
+          context.log.info(s"[${context.self.path}] I've received task $id with '$text'")
+          // do the work
+          val result = text.split(" ").length
+          // send back the result to the master
+          masterRef ! WordCountReply(id, result)
+          Behaviors.same
+        case _ =>
+          context.log.info(s"[${context.self.path}] Command unsupported")
+          Behaviors.same
+      }
+
+    }
   }
 
   //TODO Requester receiving Response from all Workers via WCM and handling response for calculating counts
