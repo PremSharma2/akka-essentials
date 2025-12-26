@@ -52,39 +52,40 @@ object AskDemoBetterDesign {
   // ----------------------------
   private object OrchestratorActor {
 
-    def apply(worker: ActorRef[WorkProtocol])(implicit timeout: Timeout, scheduler: Scheduler): Behavior[WorkProtocol] =
+    def apply(worker: ActorRef[WorkProtocol]): Behavior[WorkProtocol] =
       Behaviors.setup { context =>
-        implicit val ec: ExecutionContext = context.executionContext
+        implicit val timeout: Timeout     = Timeout(3.seconds)
+        implicit val scheduler: Scheduler = context.system.scheduler
 
         Behaviors.receiveMessage {
 
-          // external command kicks off ask
           case StartWork(payload) =>
-            val replyF: Future[WorkProtocol] =
-              worker.ask(replyTo => ComputationalTask(payload, replyTo)) // AskPattern.Askable enrichment
 
-            // Convert Future completion into a message to *self* (keep actor model clean)
-            //Akka will handle this message received form Temp Actor and send it to OrchestratorActor Actor mailbox
-            context.pipeToSelf(replyF) {
+            // ✅ ASK pattern (actor-to-actor request/reply)
+            // Akka creates temp reply actor, sends ComputationalTask with replyTo,
+            // and later delivers the mapped message back to THIS actor's mailbox.
+            context.ask(worker, replyTo => ComputationalTask(payload, replyTo)) {
               case Success(ComputationalResult(count)) =>
                 ExtendedComputationalResult(count, "Ask completed successfully")
+
               case Success(other) =>
                 ExtendedComputationalResult(-1, s"Unexpected reply: $other")
+
               case Failure(ex) =>
                 ExtendedComputationalResult(-1, s"Computation failed: ${ex.getMessage}")
             }
 
             Behaviors.same
 
-          // handle the "result message" inside the orchestrator mailbox
           case ExtendedComputationalResult(count, description) =>
-            context.log.info(s"[Orchestrator-Actor:-> Received the Output Command From Akka] $description => count=$count")
+            context.log.info(s"[Orchestrator] $description => count=$count")
             Behaviors.same
 
           case _ => Behaviors.same
         }
       }
   }
+
 
   // ----------------------------
   // 4) UserGuardian (bootstraps only)
