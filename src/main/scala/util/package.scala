@@ -13,6 +13,7 @@ package object utils {
     }
   }
 
+  //this type enrichment is kind of Decorator pattern/builder pattern
   implicit class ActorSystemEnhancements[A](system: ActorSystem[A]) {
     def withFiniteLifespan(duration: FiniteDuration): ActorSystem[A] = {
       import system.executionContext
