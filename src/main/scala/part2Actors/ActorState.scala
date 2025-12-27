@@ -118,6 +118,17 @@ TODO
    *
    * Exercise: refactor the "stateful" word counter into a "stateless" version.
    */
+  /*
+  ActorCell (heap)
+ ├── mailbox (empty)
+ ├── context (ActorContext[String])
+ └── behavior ──▶ Behavior_receive(handler captures total = 0)
+ Heap AFTER message
+ActorCell
+ ├── mailbox
+ └── behavior ──▶ Behavior_receive(handler captures total = 2)
+
+   */
   object WordCounter_V2 {
     def apply(): Behavior[String] = active(0)
 
