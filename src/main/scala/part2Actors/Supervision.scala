@@ -113,19 +113,21 @@ object Supervision {
               }
         }
 
-    val guardian: Behavior[Unit] = Behaviors.setup { context =>
-      val fussyCounter = context.spawn(parentBehavior, "fussyCounter")
+    val userGuardian: Behavior[Unit] =
+      Behaviors
+        .setup { context =>
+          val fussyCounter = context.spawn(parentBehavior, "fussyCounter")
 
-      fussyCounter ! "Starting to understand this Akka business..."
-      fussyCounter ! "Quick! Hide!"
-      fussyCounter ! "Are you there?"
-      fussyCounter ! "What are you doing?"
-      fussyCounter ! "Are you still there?"
+          fussyCounter ! "Starting to understand this Akka business..."
+          fussyCounter ! "Quick! Hide!"
+          fussyCounter ! "Are you there?"
+          fussyCounter ! "What are you doing?"
+          fussyCounter ! "Are you still there?"
 
-      Behaviors.empty
-    }
+          Behaviors.empty
+        }
 
-    val system = ActorSystem(guardian, "DemoCrashWithParent")
+    val system = ActorSystem(userGuardian, "DemoCrashWithParent")
     Thread.sleep(1000)
     system.terminate()
   }

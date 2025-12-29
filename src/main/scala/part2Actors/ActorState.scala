@@ -121,7 +121,7 @@ TODO
   /*
   ActorCell (heap)
  ├── mailbox (empty)
- ├── context (ActorContext[String])
+ ├── context (ActorContext[St                  ring])
  └── behavior ──▶ Behavior_receive(handler captures total = 0)
  Heap AFTER message
 ActorCell
